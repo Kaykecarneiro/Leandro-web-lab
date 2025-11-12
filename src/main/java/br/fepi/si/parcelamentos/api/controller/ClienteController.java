@@ -1,7 +1,8 @@
 package br.fepi.si.parcelamentos.api.controller;
-
+import br.fepi.si.parcelamentos.domain.exception.NegocioException;
 import br.fepi.si.parcelamentos.domain.model.Cliente;
 import br.fepi.si.parcelamentos.domain.repository.ClienteRepository;
+import br.fepi.si.parcelamentos.domain.service.CadastroClienteService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @RequestMapping("/clientes")
 public class ClienteController {
 
+    private final CadastroClienteService cadastroClienteService;
     private final ClienteRepository clienteRepository;
 
     @GetMapping
@@ -41,7 +43,7 @@ public class ClienteController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public Cliente inserir(@Valid @RequestBody Cliente cliente) {
-        return clienteRepository.save(cliente);
+        return cadastroClienteService.salvar(cliente);
     }
 
     @PutMapping("/{clienteId}")
@@ -52,7 +54,7 @@ public class ClienteController {
         }
 
         cliente.setId(clienteId);
-        cliente = clienteRepository.save(cliente);
+        cliente = cadastroClienteService.salvar(cliente);
 
         return ResponseEntity.ok(cliente);
 
@@ -65,9 +67,15 @@ public class ClienteController {
             return ResponseEntity.notFound().build();
         }
 
-        clienteRepository.deleteById(clienteId);
+        cadastroClienteService.excluir(clienteId);
         return ResponseEntity.noContent().build();
 
+    }
+
+    @ExceptionHandler(NegocioException.class)
+    public ResponseEntity<String> capturar(NegocioException e){
+
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 
 }
